@@ -63,10 +63,10 @@ const deleteScriptFromList = (id: string): boolean => {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const id = params.id
+    const id = context.params.id
 
     // Fetch a single script by ID from Supabase, joining related songs
     const { data: script, error: scriptError } = await supabaseService
@@ -96,20 +96,19 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const id = params.id
+    const id = context.params.id
     const body = await request.json()
 
     // Update a script by ID in Supabase
-    // Assuming your table name is 'scripts' and columns match the body properties
     const { data: script, error } = await supabaseService
       .from('scripts')
-      .update(body) // Update the script data
-      .eq('id', id) // Find the script by ID
-      .select('*, songs(*)') // Select the updated row and join related songs
-      .single() // Get the single updated row
+      .update(body)
+      .eq('id', id)
+      .select('*, songs(*)')
+      .single()
 
     if (error) {
       console.error('Error updating script in Supabase:', error)
@@ -132,19 +131,18 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
-    const id = params.id
+    const id = context.params.id
 
     // Delete a script by ID from Supabase
-    // Assuming your table name is 'scripts' and the primary key column is 'id'
     const { data: script, error } = await supabaseService
       .from('scripts')
       .delete()
-      .eq('id', id) // Find the script by ID
-      .select() // Select the deleted row (optional, but useful for confirmation)
-      .single() // Get the single deleted row (optional)
+      .eq('id', id)
+      .select()
+      .single()
 
     if (error) {
       console.error('Error deleting script from Supabase:', error)
@@ -152,7 +150,7 @@ export async function DELETE(
     }
 
     if (!script) {
-      return NextResponse.json({ message: 'Script not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Script not found' }, { status: 404 })
     }
 
     return NextResponse.json({ message: 'Script deleted successfully' })
