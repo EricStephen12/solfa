@@ -1,0 +1,101 @@
+{
+  "name": "Solfa - Choir Music Assistant",
+  "short_name": "Solfa",
+  "description": "A modern app for managing choir music and solfa notation",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4F46E5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Home screen of Solfa app"
+    },
+    {
+      "src": "/screenshots/songs.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Songs management screen"
+    },
+    {
+      "src": "/screenshots/create.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Create new song screen"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Create New Song",
+      "short_name": "New Song",
+      "description": "Create a new song with solfa notation",
+      "url": "/create",
+      "icons": [{ "src": "/icons/add.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Songs",
+      "short_name": "Songs",
+      "description": "View and manage your songs",
+      "url": "/songs",
+      "icons": [{ "src": "/icons/songs.png", "sizes": "192x192" }]
+    }
+  ],
+  "categories": ["music", "productivity", "education"],
+  "prefer_related_applications": false
+} 
