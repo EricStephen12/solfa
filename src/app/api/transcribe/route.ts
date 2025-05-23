@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
+import { supabase } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   const supabase = createRouteHandlerClient({ cookies })
@@ -10,35 +11,25 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const formData = await request.formData()
-    const file = formData.get('file') as File
+    const { audioUrl } = await request.json()
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
+    if (!audioUrl) {
+      return NextResponse.json(
+        { error: 'No audio URL provided' },
+        { status: 400 }
+      )
     }
 
-    // Prepare form data for OpenAI Whisper
-    const openaiForm = new FormData()
-    openaiForm.append('file', file)
-    openaiForm.append('model', 'whisper-1')
+    // Here you would implement your transcription logic
+    // For now, we'll return a mock response
+    const transcription = "This is a mock transcription. The actual transcription service will be implemented later."
 
-    const openaiRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: openaiForm as any,
-    })
-
-    if (!openaiRes.ok) {
-      const err = await openaiRes.json()
-      return NextResponse.json({ error: err.error?.message || 'Transcription failed' }, { status: 500 })
-    }
-
-    const data = await openaiRes.json()
-    return NextResponse.json({ transcript: data.text })
+    return NextResponse.json({ transcription })
   } catch (error) {
-    console.error('Error in transcription:', error)
-    return NextResponse.json({ error: 'Failed to transcribe audio' }, { status: 500 })
+    console.error('Error transcribing audio:', error)
+    return NextResponse.json(
+      { error: 'Failed to transcribe audio' },
+      { status: 500 }
+    )
   }
 } 

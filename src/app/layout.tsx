@@ -7,7 +7,6 @@ import { Toaster } from "@/components/ui/Toaster";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import SplashScreen from "@/components/SplashScreen";
 import Link from 'next/link'
-import { AuthProvider } from '@/context/AuthProvider'
 import AppLayoutClient from '@/components/AppLayoutClient'
 
 const inter = Inter({ subsets: ["latin"] });
@@ -55,25 +54,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </div>
         </header>
         <ServiceWorkerRegister />
-        <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <SplashScreen />
-            <div className="min-h-screen">
-              <Navigation />
-              <main className="lg:pl-72 min-h-screen">
-                <div className="max-w-screen-xl mx-auto px-4 py-8">
-                  <AppLayoutClient>{children}</AppLayoutClient>
-                </div>
-              </main>
-            </div>
-            <Toaster />
-          </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <SplashScreen />
+          <div className="min-h-screen">
+            <Navigation />
+            <main className="lg:pl-72 min-h-screen">
+              <div className="max-w-screen-xl mx-auto px-4 py-8">
+                <AppLayoutClient>{children}</AppLayoutClient>
+              </div>
+            </main>
+          </div>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

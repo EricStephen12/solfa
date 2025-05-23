@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Users, UserPlus, Music, Trash2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/context/AuthProvider'
 
 interface Choir {
   id: string
@@ -27,7 +26,6 @@ interface ChoirMember {
 }
 
 export default function ChoirManagement() {
-  const { user } = useAuth()
   const [choirs, setChoirs] = useState<Choir[]>([])
   const [members, setMembers] = useState<Record<string, ChoirMember[]>>({})
   const [isLoading, setIsLoading] = useState(true)
@@ -39,27 +37,17 @@ export default function ChoirManagement() {
 
   useEffect(() => {
     loadChoirs()
-  }, [user])
-
-  const isDirector = (choirId: string) => {
-    const member = members[choirId]?.find(m => m.user_id === user?.id)
-    return member?.role === 'director'
-  }
-
-  const canManageChoir = (choirId: string) => {
-    return isDirector(choirId)
-  }
+  }, [])
 
   const loadChoirs = async () => {
     try {
       setIsLoading(true)
       setError(null)
 
-      // Only load choirs where user is a director or member
+      // Load all choirs
       const { data: choirsData, error: choirsError } = await supabase
         .from('choirs')
         .select('*')
-        .or(`director_id.eq.${user?.id},id.in.(select choir_id from choir_members where user_id = ${user?.id})`)
 
       if (choirsError) throw choirsError
 
@@ -98,7 +86,7 @@ export default function ChoirManagement() {
         .insert({
           name: newChoirName,
           description: newChoirDescription,
-          director_id: user?.id
+          director_id: 'temp-director' // Temporary ID until auth is implemented
         })
         .select()
         .single()
@@ -110,7 +98,7 @@ export default function ChoirManagement() {
         .from('choir_members')
         .insert({
           choir_id: choir.id,
-          user_id: user?.id,
+          user_id: 'temp-director', // Temporary ID until auth is implemented
           role: 'director',
           voice_part: 'soprano' // Default, can be changed later
         })
@@ -133,21 +121,12 @@ export default function ChoirManagement() {
         return
       }
 
-      // First, get the user ID from email
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', newMemberEmail)
-        .single()
-
-      if (userError) throw userError
-
-      // Add member to choir
+      // Add member to choir with temporary user ID
       const { error: memberError } = await supabase
         .from('choir_members')
         .insert({
           choir_id: selectedChoir,
-          user_id: userData.id,
+          user_id: `temp-${newMemberEmail}`, // Temporary ID until auth is implemented
           role: 'member',
           voice_part: 'soprano' // Default, can be changed later
         })
@@ -181,48 +160,46 @@ export default function ChoirManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Create New Choir - Only visible to users who aren't already directors */}
-      {!choirs.some(choir => isDirector(choir.id)) && (
-        <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-            Create New Choir
-          </h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Choir Name
-              </label>
-              <input
-                type="text"
-                value={newChoirName}
-                onChange={(e) => setNewChoirName(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter choir name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Description
-              </label>
-              <textarea
-                value={newChoirDescription}
-                onChange={(e) => setNewChoirDescription(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter choir description"
-                rows={3}
-              />
-            </div>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={createChoir}
-              className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
-            >
-              Create Choir
-            </motion.button>
+      {/* Create New Choir */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+        <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          Create New Choir
+        </h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Choir Name
+            </label>
+            <input
+              type="text"
+              value={newChoirName}
+              onChange={(e) => setNewChoirName(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter choir name"
+            />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Description
+            </label>
+            <textarea
+              value={newChoirDescription}
+              onChange={(e) => setNewChoirDescription(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter choir description"
+              rows={3}
+            />
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={createChoir}
+            className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+          >
+            Create Choir
+          </motion.button>
         </div>
-      )}
+      </div>
 
       {/* Choirs List */}
       <div className="space-y-4">
@@ -244,7 +221,7 @@ export default function ChoirManagement() {
               No Choirs Yet
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
-              {user ? 'Create your first choir to get started' : 'Please sign in to manage choirs'}
+              Create your first choir to get started
             </p>
           </div>
         ) : (
@@ -262,42 +239,35 @@ export default function ChoirManagement() {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {choir.description}
                     </p>
-                    {isDirector(choir.id) && (
-                      <span className="inline-block mt-2 px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full text-xs">
-                        Director
-                      </span>
-                    )}
                   </div>
                   <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full text-sm">
                     {members[choir.id]?.length || 0} members
                   </span>
                 </div>
 
-                {/* Add Member Form - Only visible to directors */}
-                {canManageChoir(choir.id) && (
-                  <div className="mb-4">
-                    <div className="flex gap-2">
-                      <input
-                        type="email"
-                        value={newMemberEmail}
-                        onChange={(e) => setNewMemberEmail(e.target.value)}
-                        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter member email"
-                      />
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          setSelectedChoir(choir.id)
-                          addMember()
-                        }}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300"
-                      >
-                        <UserPlus className="w-5 h-5" />
-                      </motion.button>
-                    </div>
+                {/* Add Member Form */}
+                <div className="mb-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={newMemberEmail}
+                      onChange={(e) => setNewMemberEmail(e.target.value)}
+                      className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Enter member email"
+                    />
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setSelectedChoir(choir.id)
+                        addMember()
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300"
+                    >
+                      <UserPlus className="w-5 h-5" />
+                    </motion.button>
                   </div>
-                )}
+                </div>
 
                 {/* Members List */}
                 <div className="space-y-2">
@@ -308,22 +278,20 @@ export default function ChoirManagement() {
                     >
                       <div>
                         <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {member.user?.email}
+                          {member.user?.email || 'Member'}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {member.role} • {member.voice_part}
                         </p>
                       </div>
-                      {canManageChoir(choir.id) && member.role !== 'director' && (
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => removeMember(choir.id, member.id)}
-                          className="p-1 text-red-500 hover:text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </motion.button>
-                      )}
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => removeMember(choir.id, member.id)}
+                        className="p-1 text-red-500 hover:text-red-600"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </motion.button>
                     </div>
                   ))}
                 </div>

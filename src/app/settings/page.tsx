@@ -1,142 +1,96 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Settings, Bell, Info } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useAuth } from '@/context/AuthProvider'
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 }
-}
-
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
-}
+import { motion } from 'framer-motion'
+import { Settings, User, Bell, Shield, HelpCircle } from 'lucide-react'
 
 export default function SettingsPage() {
-  const router = useRouter()
-  const { user, supabase } = useAuth()
-  const [notifications, setNotifications] = useState(true)
-  const [loggingOut, setLoggingOut] = useState(false)
-
-  const handleNotificationsToggle = () => {
-    setNotifications(!notifications)
-  }
-
-  const handleLogout = async () => {
-    setLoggingOut(true)
-    await supabase.auth.signOut()
-    setLoggingOut(false)
-    router.push('/auth')
-  }
+  const [activeTab, setActiveTab] = useState('profile')
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
-      <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-3xl mx-auto"
-        >
-          <div className="flex items-center space-x-3 mb-8">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl">
-              <Settings className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Settings
-            </h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Settings
+        </h1>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Settings Navigation */}
+        <div className="md:col-span-1">
+          <nav className="space-y-1">
+            {[
+              { id: 'profile', label: 'Profile', icon: User },
+              { id: 'notifications', label: 'Notifications', icon: Bell },
+              { id: 'privacy', label: 'Privacy', icon: Shield },
+              { id: 'help', label: 'Help & Support', icon: HelpCircle },
+            ].map((item) => (
+              <motion.button
+                key={item.id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center px-4 py-2 text-sm font-medium rounded-lg ${
+                  activeTab === item.id
+                    ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+              >
+                <item.icon className="w-5 h-5 mr-3" />
+                {item.label}
+              </motion.button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Settings Content */}
+        <div className="md:col-span-3">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+            {activeTab === 'profile' && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Profile Settings
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Authentication is currently disabled. This feature will be available in a future update.
+                </p>
+              </div>
+            )}
+
+            {activeTab === 'notifications' && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Notification Settings
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Notification settings will be available in a future update.
+                </p>
+              </div>
+            )}
+
+            {activeTab === 'privacy' && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Privacy Settings
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Privacy settings will be available in a future update.
+                </p>
+              </div>
+            )}
+
+            {activeTab === 'help' && (
+              <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Help & Support
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Help and support features will be available in a future update.
+                </p>
+              </div>
+            )}
           </div>
-
-          <motion.div
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-            className="space-y-6"
-          >
-            {/* Account Info */}
-            <motion.div
-              variants={fadeInUp}
-              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-xl p-6"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Account</h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {user?.email || 'No email found'}
-                  </p>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  disabled={loggingOut}
-                  className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loggingOut ? 'Logging out...' : 'Logout'}
-                </button>
-              </div>
-            </motion.div>
-
-            {/* Notifications */}
-            <motion.div
-              variants={fadeInUp}
-              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-xl p-6"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
-                    <Bell className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Notifications</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                      Enable or disable notifications
-                    </p>
-                  </div>
-                </div>
-                <motion.label
-                  className="relative inline-flex items-center cursor-pointer"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={notifications}
-                    onChange={handleNotificationsToggle}
-                    className="sr-only peer"
-                  />
-                  <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all dark:border-gray-600 peer-checked:bg-gradient-to-r peer-checked:from-purple-600 peer-checked:to-pink-600"></div>
-                </motion.label>
-              </div>
-            </motion.div>
-
-            {/* About */}
-            <motion.div
-              variants={fadeInUp}
-              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-xl p-6"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl">
-                  <Info className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">About</h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Solfa - Choir Music Assistant
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Version 1.0.0
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+        </div>
       </div>
     </div>
   )
