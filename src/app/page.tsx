@@ -1,403 +1,129 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { Music, Play, Pause, Volume2, Mic, Users } from 'lucide-react'
+// Import supabase client if needed for data fetching, commented out for now
+// import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
+import { useRole } from '@/context/RoleProvider'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Plus, FileText, Music, Users, BookOpen, Mic } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import PracticeMode from '@/components/PracticeMode'
-import AudioAnalysis from '@/components/AudioAnalysis'
-import Collaboration from '@/components/Collaboration'
-import { supabase } from '@/lib/supabase'
-import ChoirManagement from '@/components/ChoirManagement'
 
-interface Script {
+// Define a placeholder Song interface matching potential backend data
+interface Song {
   id: string
   title: string
-  type: 'director' | 'choir' | 'solfa'
-  songs: string[]
-  notes: string
-  created_at: string
-  audioPath?: string
-  notations?: {
-    soprano: string[]
-    alto: string[]
-    tenor: string[]
-    bass: string[]
-  }
+  // Add other song properties as needed by the UI components
+  choir?: string
+  // ... etc.
 }
 
-export default function ScriptsPage() {
+// Placeholder data to simulate backend response
+const placeholderFeaturedSongs: Song[] = [
+  { id: '1', title: 'Amazing Grace', choir: 'Main Choir' },
+  { id: '2', title: 'Joyful Noise', choir: 'Youth Choir' },
+  { id: '3', title: 'Spirit Move', choir: 'Worship Team' },
+  { id: '4', title: 'Hallelujah', choir: 'Mass Choir' },
+]
+
+export default function SplashScreen() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'director' | 'choir' | 'solfa'>('director')
-  const [scripts, setScripts] = useState<Script[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [currentPitch, setCurrentPitch] = useState<number | null>(null)
-  const [audioQuality, setAudioQuality] = useState<'good' | 'fair' | 'poor'>('good')
-  const [currentNoteIndex, setCurrentNoteIndex] = useState<number>(-1)
-  const [showChoirManagement, setShowChoirManagement] = useState(false)
 
-  useEffect(() => {
-    const loadScripts = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        
-        const { data, error: supabaseError } = await supabase
-          .from('scripts')
-          .select('*')
-          .eq('type', activeTab)
-          .order('created_at', { ascending: false })
-
-        if (supabaseError) {
-          throw new Error(supabaseError.message)
-        }
-
-        setScripts(data || [])
-      } catch (err) {
-        console.error('Error loading scripts:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load scripts')
-      } finally {
-        setIsLoading(false)
-      }
+  const features = [
+    {
+      icon: Music,
+      title: 'Song Management',
+      description: 'Organize and share your choir\'s repertoire with ease'
+    },
+    {
+      icon: Users,
+      title: 'Choir Collaboration',
+      description: 'Connect with other choirs and share resources'
+    },
+    {
+      icon: Mic,
+      title: 'Audition Management',
+      description: 'Streamline your audition process and find new talent'
     }
-
-    loadScripts()
-  }, [activeTab])
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 24
-      }
-    }
-  }
+  ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4"
+          transition={{ duration: 0.8 }}
+          className="text-center"
         >
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Scripts & Notations
-          </h1>
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/scripts/create')}
-              className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 flex items-center justify-center sm:justify-start space-x-2"
-            >
-              <Plus className="w-5 h-5" />
-              <span>New Script</span>
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowChoirManagement(!showChoirManagement)}
-              className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 flex items-center justify-center sm:justify-start space-x-2"
-            >
-              <Users className="w-5 h-5" />
-              <span>{showChoirManagement ? 'Hide Choirs' : 'Manage Choirs'}</span>
-            </motion.button>
-          </div>
-        </motion.div>
-
-        {/* Choir Management Section */}
-        {showChoirManagement && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mb-8"
+          <motion.h1
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="text-5xl md:text-7xl font-bold text-blue-800 dark:text-blue-400 mb-6"
           >
-            <ChoirManagement />
-          </motion.div>
-        )}
-
-        {/* Tabs */}
-        <div className="flex flex-wrap gap-4 mb-8">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setActiveTab('director')}
-            className={`flex-1 sm:flex-auto px-6 py-3 rounded-xl flex items-center justify-center space-x-2 transition-all duration-300 ${
-              activeTab === 'director'
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
+            Solfa
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-xl text-gray-600 dark:text-gray-300 mb-12"
           >
-            <Music className="w-5 h-5" />
-            <span>Director Scripts</span>
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setActiveTab('choir')}
-            className={`flex-1 sm:flex-auto px-6 py-3 rounded-xl flex items-center justify-center space-x-2 transition-all duration-300 ${
-              activeTab === 'choir'
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <Users className="w-5 h-5" />
-            <span>Choir Scripts</span>
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setActiveTab('solfa')}
-            className={`flex-1 sm:flex-auto px-6 py-3 rounded-xl flex items-center justify-center space-x-2 transition-all duration-300 ${
-              activeTab === 'solfa'
-                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-            }`}
-          >
-            <BookOpen className="w-5 h-5" />
-            <span>Solfa Notations</span>
-          </motion.button>
-        </div>
-
-        {/* Practice Mode Section */}
-        <div className="mb-8">
-          <PracticeMode
-            notations={scripts.length > 0 ? scripts[0].notations : {
-              soprano: [],
-              alto: [],
-              tenor: [],
-              bass: []
-            }}
-            activeVoicePart={activeTab === 'choir' ? 'soprano' : 'soprano'}
-            onNoteHighlight={(index) => setCurrentNoteIndex(index)}
-            songs={scripts.map(script => ({
-              id: script.id,
-              title: script.title,
-              type: script.type,
-              audioPath: script.audioPath
-            }))}
-          />
-        </div>
-
-        {/* Audio Analysis Section */}
-        <div className="mb-8">
-          <AudioAnalysis
-            onPitchDetected={setCurrentPitch}
-            onQualityChange={setAudioQuality}
-          />
-        </div>
-
-        {/* Collaboration Section */}
-        {scripts.length > 0 && (
-          <div className="mb-8">
-            <Collaboration
-              scriptId={scripts[0].id}
-              onShare={(url) => {
-                // Handle share URL
-                console.log('Share URL:', url)
-              }}
-            />
-          </div>
-        )}
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg cursor-pointer"
-            onClick={() => router.push('/songs/create')}
-          >
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
-                <Mic className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Create New Song
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Add lyrics and generate solfa notation
-                </p>
-              </div>
-            </div>
-          </motion.div>
+            The Ultimate Platform for Choir Directors
+          </motion.p>
 
           <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg cursor-pointer"
-            onClick={() => router.push('/scripts/create')}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
           >
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
-                <FileText className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Create New Script
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  For directors or choir members
-                </p>
-              </div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg cursor-pointer"
-            onClick={() => router.push('/songs')}
-          >
-            <div className="flex items-center space-x-4">
-              <div className="p-3 bg-green-100 dark:bg-green-900/50 rounded-lg">
-                <BookOpen className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  View All Songs
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Browse and modify existing songs
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Scripts List */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {isLoading ? (
-            <motion.div
-              variants={itemVariants}
-              className="col-span-full bg-white dark:bg-gray-800 rounded-2xl p-8 text-center"
-            >
-              <div className="flex items-center justify-center space-x-4">
-                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-gray-600 dark:text-gray-400">Loading scripts...</span>
-              </div>
-            </motion.div>
-          ) : error ? (
-            <motion.div
-              variants={itemVariants}
-              className="col-span-full bg-white dark:bg-gray-800 rounded-2xl p-8 text-center"
-            >
-              <div className="text-red-500 mb-4">{error}</div>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => window.location.reload()}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
-              >
-                Try Again
-              </motion.button>
-            </motion.div>
-          ) : scripts.length === 0 ? (
-            <motion.div
-              variants={itemVariants}
-              className="col-span-full bg-white dark:bg-gray-800 rounded-2xl p-8 text-center"
-            >
-              <FileText className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No {activeTab === 'director' ? 'Director' : activeTab === 'choir' ? 'Choir' : 'Solfa'} Scripts Yet
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                {activeTab === 'director' 
-                  ? 'Create your first director script to get started'
-                  : activeTab === 'choir'
-                  ? 'Create your first choir script to get started'
-                  : 'Create your first solfa notation to get started'}
-              </p>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => router.push('/scripts/create')}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
-              >
-                Create New Script
-              </motion.button>
-            </motion.div>
-          ) : (
-            scripts.map((script) => (
+            {features.map((feature, index) => (
               <motion.div
-                key={script.id}
-                variants={itemVariants}
-                className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300"
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 + index * 0.2 }}
+                className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      {script.title}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(script.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-sm ${
-                    script.type === 'director'
-                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                      : script.type === 'choir'
-                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300'
-                      : 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                  }`}>
-                    {script.type === 'director' ? 'Director' : script.type === 'choir' ? 'Choir' : 'Solfa'}
-                  </span>
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                  {script.notes}
+                <feature.icon className="w-12 h-12 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300">
+                  {feature.description}
                 </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    {script.songs.length} songs
-                  </span>
-                  <div className="flex space-x-2">
-                    {script.audioPath && (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300"
-                      >
-                        <Mic className="w-5 h-5" />
-                      </motion.button>
-                    )}
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => router.push(`/scripts/${script.id}`)}
-                      className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
-                    >
-                      View Script
-                    </motion.button>
-                  </div>
-                </div>
               </motion.div>
-            ))
-          )}
+            ))}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.2 }}
+            className="space-x-4"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push('/auth')}
+              className="px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Get Started
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.push('/about')}
+              className="px-8 py-4 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 rounded-xl font-semibold border-2 border-blue-600 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              Learn More
+            </motion.button>
+          </motion.div>
         </motion.div>
       </div>
     </div>
   )
-} 
+}

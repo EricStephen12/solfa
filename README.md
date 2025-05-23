@@ -1,72 +1,63 @@
-# Solfa - Music Notation App
+# Solfa - Choir Management System
 
-A modern web application for creating and managing musical notations, particularly focused on solfa notation. Built with Next.js, TypeScript, and Supabase.
+A modern web application for managing choirs, songs, and auditions.
 
 ## Features
 
-- Create and manage songs with solfa notation
-- Support for multiple voice parts (soprano, alto, tenor, bass)
-- Beautiful and responsive UI
-- Mobile-first design
-- Progressive Web App (PWA) support
+- User authentication and role-based access control
+- Dark/light mode support
+- Responsive design with mobile navigation
+- Real-time updates with Supabase
+- Modern UI with Tailwind CSS and Framer Motion
 
 ## Tech Stack
 
 - Next.js 14
+- React 18
 - TypeScript
 - Tailwind CSS
 - Framer Motion
 - Supabase
-- Lucide Icons
 
 ## Getting Started
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/solfa.git
-cd solfa
-```
-
+1. Clone the repository
 2. Install dependencies:
-```bash
-npm install
-```
+   ```bash
+   npm install
+   ```
 
-3. Set up environment variables:
-Create a `.env.local` file in the root directory with the following variables:
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
+3. Create a `.env.local` file in the root directory with the following variables:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
 4. Run the development server:
-```bash
-npm run dev
-```
+   ```bash
+   npm run dev
+   ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ## Project Structure
 
 ```
-solfa/
-├── src/
-│   ├── app/              # Next.js app directory
-│   ├── components/       # Reusable components
-│   ├── lib/             # Utility functions and configurations
-│   └── styles/          # Global styles
-├── public/              # Static assets
-└── ...
+src/
+  ├── app/              # Next.js app directory
+  ├── components/       # React components
+  ├── context/         # React context providers
+  ├── lib/             # Utility functions and configurations
+  └── types/           # TypeScript type definitions
 ```
 
-## Contributing
+## Development
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+MIT 

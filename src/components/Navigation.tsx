@@ -1,95 +1,108 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Home, Plus, List, Settings } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { toast } from './ui/Toaster'
-import { motion } from 'framer-motion'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
+import { Home, Music, Users, Mic, User, Menu, X, MessageSquare } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+
+const navigation = [
+  { name: 'Home', href: '/', icon: Home },
+  { name: 'Songs', href: '/songs', icon: Music },
+  { name: 'Choirs', href: '/choirs', icon: Users },
+  { name: 'Auditions', href: '/auditions', icon: Mic },
+  { name: 'Collaboration', href: '/collaboration', icon: MessageSquare },
+  { name: 'Profile', href: '/profile', icon: User },
+]
 
 export default function Navigation() {
   const pathname = usePathname()
-  const router = useRouter()
-  const [isInstallable, setIsInstallable] = useState(false)
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null)
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault()
-      setDeferredPrompt(e)
-      setIsInstallable(true)
-    }
-
-    window.addEventListener('beforeinstallprompt', handler)
-    return () => window.removeEventListener('beforeinstallprompt', handler)
-  }, [])
-
-  const handleInstall = async () => {
-    if (!deferredPrompt) return
-
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-
-    if (outcome === 'accepted') {
-      toast('App installed successfully!', 'success')
-    } else {
-      toast('App installation declined', 'info')
-    }
-
-    setDeferredPrompt(null)
-    setIsInstallable(false)
-  }
-
-  const isActive = (path: string) => pathname === path
-
-  const navItems = [
-    { path: '/', icon: Home, label: 'Home' },
-    { path: '/songs/create', icon: Plus, label: 'Create' },
-    { path: '/songs', icon: List, label: 'Songs' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-  ]
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 shadow-lg">
-      <div className="max-w-screen-xl mx-auto px-2">
-        <div className="flex justify-around items-center h-16">
-          {navItems.map((item) => {
-            const Icon = item.icon
-            const active = isActive(item.path)
-            return (
-              <motion.div
-                key={item.path}
-                whileTap={{ scale: 0.9 }}
-                className="relative flex-1 flex items-center justify-center h-full"
+    <>
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, x: -300 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -300 }}
+            className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg md:hidden"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                Solfa
+              </h1>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
               >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <nav className="p-4 space-y-2">
+              {navigation.map((item) => (
                 <Link
-                  href={item.path}
-                  className={`flex flex-col items-center justify-center w-full h-full transition-all duration-200 ${
-                    active
-                      ? 'text-blue-600 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-300'
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                    pathname === item.href
+                      ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
                   }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  <div className={`relative ${active ? 'transform -translate-y-1' : ''}`}>
-                    <Icon className="w-6 h-6" />
-                    {active && (
-                      <motion.div
-                        layoutId="activeIndicator"
-                        className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-blue-600 dark:bg-blue-400 rounded-full"
-                        initial={false}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      />
-                    )}
-                  </div>
-                  <span className={`text-xs mt-1 font-medium ${active ? 'opacity-100' : 'opacity-70'}`}>
-                    {item.label}
-                  </span>
+                  <item.icon className="w-5 h-5" />
+                  <span>{item.name}</span>
                 </Link>
-              </motion.div>
-            )
-          })}
+              ))}
+            </nav>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Header */}
+      <div className="md:hidden">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            Solfa
+          </h1>
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
         </div>
       </div>
-    </nav>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0">
+        <div className="flex flex-col flex-grow pt-5 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+          <div className="flex items-center flex-shrink-0 px-4">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              Solfa
+            </h1>
+          </div>
+          <nav className="flex-1 px-4 mt-5 space-y-2">
+            {navigation.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                  pathname === item.href
+                    ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                }`}
+              >
+                <item.icon className="w-5 h-5" />
+                <span>{item.name}</span>
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </div>
+    </>
   )
 } 
