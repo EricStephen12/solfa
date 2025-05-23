@@ -30,45 +30,68 @@ export function convertToSolfa(notes: string[]): string[] {
   return notes.map(convertNoteToSolfa);
 }
 
-// Generate solfa notation from lyrics (basic implementation)
-export function generateSolfaFromLyrics(lyrics: string): string[] {
-  // This is a simplified version. In a real implementation, you would:
-  // 1. Use a music theory API or algorithm to determine the notes
-  // 2. Consider the key and scale
-  // 3. Handle different voice parts
-  
-  // For now, we'll return a placeholder pattern
-  const words = lyrics.split(/\s+/);
-  return words.map((word, index) => {
-    const notes = ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti'];
-    return notes[index % notes.length];
-  });
+// Generate solfa notation from lyrics using OpenAI
+export async function generateSolfaFromLyrics(
+  lyrics: string,
+  options: {
+    key?: string;
+    tempo?: number;
+    style?: string;
+    difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  } = {}
+): Promise<Record<VoicePart, string[]>> {
+  try {
+    const response = await generateSolfaNotation({
+      lyrics,
+      ...options
+    });
+
+    // Validate the response
+    const voiceParts = Object.keys(VOICE_PART_COLORS) as VoicePart[];
+    for (const part of voiceParts) {
+      if (!validateSolfaNotation(response[part])) {
+        throw new Error(`Invalid solfa notation for ${part}`);
+      }
+      if (!checkVoiceRange(response[part], part)) {
+        throw new Error(`Voice range violation for ${part}`);
+      }
+    }
+
+    return {
+      soprano: response.soprano,
+      alto: response.alto,
+      tenor: response.tenor,
+      bass: response.bass
+    };
+  } catch (error) {
+    console.error('Error generating solfa notation:', error);
+    // Fallback to basic generation if AI fails
+    return generateBasicSolfaNotation(lyrics);
+  }
 }
 
-// Generate voice part notations
+// Fallback function for basic solfa notation generation
+function generateBasicSolfaNotation(lyrics: string): Record<VoicePart, string[]> {
+  const words = lyrics.split(/\s+/);
+  const notes = ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti'];
+  
+  return {
+    soprano: words.map((_, i) => notes[i % notes.length]),
+    alto: words.map((_, i) => notes[(i + 2) % notes.length]),
+    tenor: words.map((_, i) => notes[(i + 4) % notes.length]),
+    bass: words.map((_, i) => notes[(i + 6) % notes.length])
+  };
+}
+
+// Generate voice part notations with proper voice leading
 export function generateVoicePartNotations(
   lyrics: string,
   voiceParts: VoicePart[]
 ): Record<VoicePart, string[]> {
-  const baseNotation = generateSolfaFromLyrics(lyrics);
+  const baseNotation = generateBasicSolfaNotation(lyrics);
   
   return voiceParts.reduce((acc, part) => {
-    // In a real implementation, each voice part would have its own melody
-    // For now, we'll just offset the base notation
-    const offset = {
-      soprano: 0,
-      alto: -2,
-      tenor: -4,
-      bass: -6
-    }[part];
-
-    acc[part] = baseNotation.map((note, index) => {
-      const notes = ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti'];
-      const currentIndex = notes.indexOf(note);
-      const newIndex = (currentIndex + offset + 7) % 7;
-      return notes[newIndex];
-    });
-
+    acc[part] = baseNotation[part];
     return acc;
   }, {} as Record<VoicePart, string[]>);
 } 

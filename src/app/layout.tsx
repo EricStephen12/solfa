@@ -7,6 +7,8 @@ import { Toaster } from "@/components/ui/Toaster";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import SplashScreen from "@/components/SplashScreen";
 import Link from 'next/link'
+import { AuthProvider } from '@/context/AuthProvider'
+import AppLayoutClient from '@/components/AppLayoutClient'
 
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({ subsets: ['latin'], weight: ['400', '600', '700'] })
@@ -24,11 +26,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -43,9 +41,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={`${
-        poppins.className
-      } bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800`}>
+      <body className={`${poppins.className} bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800`}>
         <header className="bg-blue-600 text-white p-4 shadow-md">
           <div className="container mx-auto flex justify-between items-center">
             <Link href="/" className="text-2xl font-bold">
@@ -59,23 +55,25 @@ export default function RootLayout({
           </div>
         </header>
         <ServiceWorkerRegister />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SplashScreen />
-          <div className="min-h-screen">
-            <Navigation />
-            <main className="lg:pl-72 min-h-screen">
-              <div className="max-w-screen-xl mx-auto px-4 py-8">
-                {children}
-              </div>
-            </main>
-          </div>
-          <Toaster />
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <SplashScreen />
+            <div className="min-h-screen">
+              <Navigation />
+              <main className="lg:pl-72 min-h-screen">
+                <div className="max-w-screen-xl mx-auto px-4 py-8">
+                  <AppLayoutClient>{children}</AppLayoutClient>
+                </div>
+              </main>
+            </div>
+            <Toaster />
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

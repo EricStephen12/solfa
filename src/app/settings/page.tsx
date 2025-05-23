@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Settings, Bell, Info } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '@/context/AuthProvider'
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
@@ -21,10 +22,19 @@ const staggerContainer = {
 
 export default function SettingsPage() {
   const router = useRouter()
+  const { user, supabase } = useAuth()
   const [notifications, setNotifications] = useState(true)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   const handleNotificationsToggle = () => {
     setNotifications(!notifications)
+  }
+
+  const handleLogout = async () => {
+    setLoggingOut(true)
+    await supabase.auth.signOut()
+    setLoggingOut(false)
+    router.push('/auth')
   }
 
   return (
@@ -50,6 +60,28 @@ export default function SettingsPage() {
             animate="animate"
             className="space-y-6"
           >
+            {/* Account Info */}
+            <motion.div
+              variants={fadeInUp}
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-xl p-6"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Account</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {user?.email || 'No email found'}
+                  </p>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  disabled={loggingOut}
+                  className="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loggingOut ? 'Logging out...' : 'Logout'}
+                </button>
+              </div>
+            </motion.div>
+
             {/* Notifications */}
             <motion.div
               variants={fadeInUp}

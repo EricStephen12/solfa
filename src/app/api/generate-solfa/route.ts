@@ -16,24 +16,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Simulate solfa notation generation
+    // Log input for debugging
+    console.log('Generating solfa for:', { lyrics, voiceParts });
+
+    // TODO: Integrate with a real AI service for solfa generation
+    // Example: const aiResult = await callSolfaAIService(lyrics, voiceParts)
+    // For now, return a placeholder
     const words = lyrics.split(/\s+/).filter(word => word.length > 0);
     const generatedNotations: Record<string, string[]> = {};
 
     voiceParts.forEach((part: string) => {
       // Simple placeholder logic: assign a basic solfa note to each word
-      // In a real implementation, this would be complex musical logic.
-      generatedNotations[part] = words.map((word, index) => {
-        const notes = ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti'];
-        return notes[index % notes.length];
-      });
+      const notes = ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti'];
+      generatedNotations[part] = words.map((word, index) => notes[index % notes.length]);
     });
 
-    // Simulate a slight delay to mimic processing time
+    // Log output for debugging
+    console.log('Generated solfa:', generatedNotations);
+
     await new Promise(resolve => setTimeout(resolve, 500));
 
     return NextResponse.json(generatedNotations, { status: 200 });
-
   } catch (error) {
     console.error('Error generating solfa notation:', error);
     return NextResponse.json(

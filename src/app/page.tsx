@@ -1,9 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, FileText, Music, Users, BookOpen, Mic } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import PracticeMode from '@/components/PracticeMode'
+import AudioAnalysis from '@/components/AudioAnalysis'
+import Collaboration from '@/components/Collaboration'
+import { supabase } from '@/lib/supabase'
+import ChoirManagement from '@/components/ChoirManagement'
 
 interface Script {
   id: string
@@ -11,8 +16,14 @@ interface Script {
   type: 'director' | 'choir' | 'solfa'
   songs: string[]
   notes: string
-  createdAt: string
+  created_at: string
   audioPath?: string
+  notations?: {
+    soprano: string[]
+    alto: string[]
+    tenor: string[]
+    bass: string[]
+  }
 }
 
 export default function ScriptsPage() {
@@ -20,6 +31,39 @@ export default function ScriptsPage() {
   const [activeTab, setActiveTab] = useState<'director' | 'choir' | 'solfa'>('director')
   const [scripts, setScripts] = useState<Script[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [currentPitch, setCurrentPitch] = useState<number | null>(null)
+  const [audioQuality, setAudioQuality] = useState<'good' | 'fair' | 'poor'>('good')
+  const [currentNoteIndex, setCurrentNoteIndex] = useState<number>(-1)
+  const [showChoirManagement, setShowChoirManagement] = useState(false)
+
+  useEffect(() => {
+    const loadScripts = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+        
+        const { data, error: supabaseError } = await supabase
+          .from('scripts')
+          .select('*')
+          .eq('type', activeTab)
+          .order('created_at', { ascending: false })
+
+        if (supabaseError) {
+          throw new Error(supabaseError.message)
+        }
+
+        setScripts(data || [])
+      } catch (err) {
+        console.error('Error loading scripts:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load scripts')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    loadScripts()
+  }, [activeTab])
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -68,14 +112,26 @@ export default function ScriptsPage() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => router.push('/songs/create')}
+              onClick={() => setShowChoirManagement(!showChoirManagement)}
               className="w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-300 flex items-center justify-center sm:justify-start space-x-2"
             >
-              <Mic className="w-5 h-5" />
-              <span>New Song</span>
+              <Users className="w-5 h-5" />
+              <span>{showChoirManagement ? 'Hide Choirs' : 'Manage Choirs'}</span>
             </motion.button>
           </div>
         </motion.div>
+
+        {/* Choir Management Section */}
+        {showChoirManagement && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-8"
+          >
+            <ChoirManagement />
+          </motion.div>
+        )}
 
         {/* Tabs */}
         <div className="flex flex-wrap gap-4 mb-8">
@@ -119,6 +175,47 @@ export default function ScriptsPage() {
             <span>Solfa Notations</span>
           </motion.button>
         </div>
+
+        {/* Practice Mode Section */}
+        <div className="mb-8">
+          <PracticeMode
+            notations={scripts.length > 0 ? scripts[0].notations : {
+              soprano: [],
+              alto: [],
+              tenor: [],
+              bass: []
+            }}
+            activeVoicePart={activeTab === 'choir' ? 'soprano' : 'soprano'}
+            onNoteHighlight={(index) => setCurrentNoteIndex(index)}
+            songs={scripts.map(script => ({
+              id: script.id,
+              title: script.title,
+              type: script.type,
+              audioPath: script.audioPath
+            }))}
+          />
+        </div>
+
+        {/* Audio Analysis Section */}
+        <div className="mb-8">
+          <AudioAnalysis
+            onPitchDetected={setCurrentPitch}
+            onQualityChange={setAudioQuality}
+          />
+        </div>
+
+        {/* Collaboration Section */}
+        {scripts.length > 0 && (
+          <div className="mb-8">
+            <Collaboration
+              scriptId={scripts[0].id}
+              onShare={(url) => {
+                // Handle share URL
+                console.log('Share URL:', url)
+              }}
+            />
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -193,7 +290,32 @@ export default function ScriptsPage() {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {scripts.length === 0 ? (
+          {isLoading ? (
+            <motion.div
+              variants={itemVariants}
+              className="col-span-full bg-white dark:bg-gray-800 rounded-2xl p-8 text-center"
+            >
+              <div className="flex items-center justify-center space-x-4">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-gray-600 dark:text-gray-400">Loading scripts...</span>
+              </div>
+            </motion.div>
+          ) : error ? (
+            <motion.div
+              variants={itemVariants}
+              className="col-span-full bg-white dark:bg-gray-800 rounded-2xl p-8 text-center"
+            >
+              <div className="text-red-500 mb-4">{error}</div>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => window.location.reload()}
+                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300"
+              >
+                Try Again
+              </motion.button>
+            </motion.div>
+          ) : scripts.length === 0 ? (
             <motion.div
               variants={itemVariants}
               className="col-span-full bg-white dark:bg-gray-800 rounded-2xl p-8 text-center"
@@ -231,7 +353,7 @@ export default function ScriptsPage() {
                       {script.title}
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {new Date(script.createdAt).toLocaleDateString()}
+                      {new Date(script.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <span className={`px-3 py-1 rounded-full text-sm ${

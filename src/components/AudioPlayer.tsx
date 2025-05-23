@@ -9,6 +9,46 @@ interface AudioPlayerProps {
   onNoteHighlight: (index: number) => void
 }
 
+// Voice part frequency ranges (in Hz)
+const VOICE_RANGES = {
+  soprano: {
+    do: 523.25, // C5
+    re: 587.33, // D5
+    mi: 659.25, // E5
+    fa: 698.46, // F5
+    sol: 783.99, // G5
+    la: 880.00, // A5
+    ti: 987.77  // B5
+  },
+  alto: {
+    do: 392.00, // G4
+    re: 440.00, // A4
+    mi: 493.88, // B4
+    fa: 523.25, // C5
+    sol: 587.33, // D5
+    la: 659.25, // E5
+    ti: 698.46  // F5
+  },
+  tenor: {
+    do: 261.63, // C4
+    re: 293.66, // D4
+    mi: 329.63, // E4
+    fa: 349.23, // F4
+    sol: 392.00, // G4
+    la: 440.00, // A4
+    ti: 493.88  // B4
+  },
+  bass: {
+    do: 196.00, // G3
+    re: 220.00, // A3
+    mi: 246.94, // B3
+    fa: 261.63, // C4
+    sol: 293.66, // D4
+    la: 329.63, // E4
+    ti: 349.23  // F4
+  }
+}
+
 export default function AudioPlayer({
   notations,
   activeVoicePart,
@@ -18,7 +58,7 @@ export default function AudioPlayer({
   const [playbackSpeed, setPlaybackSpeed] = useState(1)
   const [currentNoteIndex, setCurrentNoteIndex] = useState(0)
   const audioContextRef = useRef<AudioContext | null>(null)
-  const oscillatorRef = useRef<OscillatorNode | null>(null)
+  const oscillatorsRef = useRef<OscillatorNode[]>([])
   const gainNodeRef = useRef<GainNode | null>(null)
 
   // Initialize audio context
@@ -31,27 +71,60 @@ export default function AudioPlayer({
     }
   }, [])
 
-  // Play note function
+  // Create formant filter for vocal-like sound
+  const createFormantFilter = (frequency: number) => {
+    if (!audioContextRef.current) return null
+
+    const filter = audioContextRef.current.createBiquadFilter()
+    filter.type = 'peaking'
+    filter.frequency.value = frequency
+    filter.Q.value = 1
+    filter.gain.value = 10
+    return filter
+  }
+
+  // Play note function with formant synthesis
   const playNote = (note: string, duration: number) => {
     if (!audioContextRef.current || !gainNodeRef.current) return
 
-    const frequencies: Record<string, number> = {
-      'do': 261.63, // C4
-      're': 293.66, // D4
-      'mi': 329.63, // E4
-      'fa': 349.23, // F4
-      'sol': 392.00, // G4
-      'la': 440.00, // A4
-      'ti': 493.88  // B4
-    }
+    const frequencies = VOICE_RANGES[activeVoicePart]
+    const baseFreq = frequencies[note] || 440
 
-    const oscillator = audioContextRef.current.createOscillator()
-    oscillator.type = 'sine'
-    oscillator.frequency.value = frequencies[note] || 440
-    oscillator.connect(gainNodeRef.current)
-    oscillator.start()
-    oscillator.stop(audioContextRef.current.currentTime + duration)
-    oscillatorRef.current = oscillator
+    // Create main oscillator
+    const mainOsc = audioContextRef.current.createOscillator()
+    mainOsc.type = 'sine'
+    mainOsc.frequency.value = baseFreq
+
+    // Create formant oscillators for richer sound
+    const formant1 = createFormantFilter(baseFreq * 1.5)
+    const formant2 = createFormantFilter(baseFreq * 2)
+    const formant3 = createFormantFilter(baseFreq * 3)
+
+    // Connect oscillators
+    mainOsc.connect(gainNodeRef.current)
+    if (formant1) formant1.connect(gainNodeRef.current)
+    if (formant2) formant2.connect(gainNodeRef.current)
+    if (formant3) formant3.connect(gainNodeRef.current)
+
+    // Add slight vibrato for more natural sound
+    const vibrato = audioContextRef.current.createOscillator()
+    vibrato.frequency.value = 5
+    const vibratoGain = audioContextRef.current.createGain()
+    vibratoGain.gain.value = 2
+    vibrato.connect(vibratoGain)
+    vibratoGain.connect(mainOsc.frequency)
+
+    // Start oscillators
+    mainOsc.start()
+    vibrato.start()
+
+    // Store oscillators for cleanup
+    oscillatorsRef.current = [mainOsc, vibrato]
+
+    // Stop after duration
+    const stopTime = audioContextRef.current.currentTime + duration
+    mainOsc.stop(stopTime)
+    vibrato.stop(stopTime)
   }
 
   // Play sequence of notes
@@ -78,7 +151,7 @@ export default function AudioPlayer({
   const togglePlay = () => {
     if (isPlaying) {
       setIsPlaying(false)
-      oscillatorRef.current?.stop()
+      oscillatorsRef.current.forEach(osc => osc.stop())
     } else {
       setIsPlaying(true)
       playSequence()
