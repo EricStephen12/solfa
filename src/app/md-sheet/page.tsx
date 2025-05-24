@@ -42,41 +42,39 @@ export default function MDSheetListPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="w-[95%] mx-auto py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Musical Director Sheets
-            </h1>
-          </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+            Musical Director Sheets
+          </h1>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={createNewSheet}
-            className="px-6 py-3 bg-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+            className="w-full sm:w-auto px-8 py-4 bg-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 text-lg"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-6 h-6" />
             <span>Create New Sheet</span>
           </motion.button>
         </div>
 
-        {/* MD Sheets */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* MD Sheets Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {sheets.map((sheet) => (
             <motion.div
               key={sheet.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
+              className="w-full bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <Music className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div className="flex-shrink-0 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Music className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
                     {sheet.title}
                   </h2>
                 </div>
@@ -84,22 +82,22 @@ export default function MDSheetListPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => editSheet(sheet.id)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
+                  className="flex-shrink-0 p-3 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"
                 >
-                  <Edit2 className="w-5 h-5" />
+                  <Edit2 className="w-6 h-6" />
                 </motion.button>
               </div>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <User className="w-4 h-4" />
-                  <span>{sheet.composer}</span>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                  <User className="w-5 h-5 flex-shrink-0" />
+                  <span className="truncate text-lg">{sheet.composer}</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                  <Calendar className="w-4 h-4" />
-                  <span>Last modified: {sheet.lastModified}</span>
+                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-400">
+                  <Calendar className="w-5 h-5 flex-shrink-0" />
+                  <span className="truncate text-lg">Last modified: {sheet.lastModified}</span>
                 </div>
-                <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <span className="text-base text-gray-500 dark:text-gray-400">
                     {sheet.sectionCount} sections
                   </span>
                 </div>
