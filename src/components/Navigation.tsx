@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { Home, Music, Users, Mic, User, Menu, X, MessageSquare } from 'lucide-react'
+import { Home, Music, Users, Mic, User, Menu, X, MessageSquare, FileText } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Songs', href: '/songs', icon: Music },
-  { name: 'Choirs', href: '/choirs', icon: Users },
-  { name: 'Auditions', href: '/auditions', icon: Mic },
+  { name: 'MD Sheets', href: '/md-sheet', icon: FileText },
   { name: 'Collaboration', href: '/collaboration', icon: MessageSquare },
   { name: 'Profile', href: '/profile', icon: User },
 ]

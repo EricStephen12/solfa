@@ -1,373 +1,219 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { User, Settings, Bell, Lock, Music, Mic } from 'lucide-react'
-// import { supabase } from '@/lib/supabase' // Removed Supabase import
-import { useRole } from '@/context/RoleProvider'
-import Image from 'next/image'
+import { User, Music, FileText, MessageSquare, Settings, LogOut, Star, Award, Heart, Users } from 'lucide-react'
 
-interface UserProfile {
-  id: string
-  name: string
-  email: string
-  avatarUrl?: string
-  role: 'director' | 'member'
-  preferences: {
-    notifications: boolean
-    darkMode: boolean
-    autoPlay: boolean
-  }
-  stats: {
-    songsLearned: number
-    auditionsSubmitted: number
-    feedbackReceived: number
-  }
-}
-
-// Placeholder data for the profile
-const placeholderProfile: UserProfile = {
-  id: '1',
-  name: 'Director John Doe',
-  email: 'john.doe@example.com',
-  avatarUrl: '/images/placeholder-avatar.jpg', // Placeholder avatar image
-  role: 'director',
-  preferences: {
-    notifications: true,
-    darkMode: false,
-    autoPlay: true,
-  },
-  stats: {
-    songsLearned: 50,
-    auditionsSubmitted: 12,
-    feedbackReceived: 35,
-  },
+interface ProfileStats {
+  songsCreated: number
+  scriptsCreated: number
+  collaborations: number
+  followers: number
+  following: number
+  likes: number
 }
 
 export default function ProfilePage() {
-  const { role } = useRole()
-  // Initialize with placeholder data
-  const [profile, setProfile] = useState<UserProfile>(placeholderProfile)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editedProfile, setEditedProfile] = useState<Partial<UserProfile>>(placeholderProfile)
-  const [activeTab, setActiveTab] = useState<'profile' | 'settings' | 'stats'>('profile')
-
-  // Removed useEffect for loading profile from Supabase
-  /*
-  useEffect(() => {
-    const loadProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-      if (data) {
-        setProfile(data)
-        setEditedProfile(data)
-      }
-    }
-
-    loadProfile()
-  }, [])
-  */
-
-  // Placeholder save function - does not interact with backend
-  const handleSaveProfile = () => {
-    // Simulate saving locally for UI demonstration
-    setProfile(prev => prev ? { ...prev, ...editedProfile as UserProfile } : editedProfile as UserProfile);
-    setIsEditing(false);
-    console.log('Simulating profile save:', editedProfile);
-  };
-
-  // Placeholder avatar change function - does not interact with backend storage
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0]) return;
-    // Simulate local avatar change for UI demonstration
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setEditedProfile(prev => ({ ...prev, avatarUrl: reader.result as string }));
-    };
-    reader.readAsDataURL(file);
-    console.log('Simulating avatar change');
-  };
-
-  // Removed loading state check
-  // if (!profile) { return (...) }
+  const [activeTab, setActiveTab] = useState('overview')
+  const [stats] = useState<ProfileStats>({
+    songsCreated: 12,
+    scriptsCreated: 8,
+    collaborations: 24,
+    followers: 156,
+    following: 89,
+    likes: 342
+  })
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* Profile Header */}
-      <motion.div
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 backdrop-blur-3xl" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-center text-center"
+          >
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-2xl opacity-50" />
+              <img
+                src="/placeholder-avatar.jpg"
+                alt="Profile"
+                className="relative w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 shadow-xl"
+              />
+            </div>
+            <h1 className="mt-6 text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              John Doe
+            </h1>
+            <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
+              Music Director & Arranger
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Stats Section */}
+      <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
+        transition={{ delay: 0.2 }}
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8"
       >
-        <div className="flex items-start space-x-6">
-          <div className="relative">
-            <div className="w-32 h-32 bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
-              {/* Use editedProfile for display when editing, otherwise use profile */}
-              {(isEditing ? editedProfile.avatarUrl : profile.avatarUrl) ? (
-                <Image
-                  src={isEditing ? editedProfile.avatarUrl! : profile.avatarUrl!}
-                  alt={isEditing ? editedProfile.name || '' : profile.name}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <User className="w-16 h-16 text-gray-400" />
-                </div>
-              )}
-            </div>
-            {isEditing && (
-              <label className="absolute bottom-0 right-0 p-2 bg-blue-600 text-white rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleAvatarChange}
-                />
-                <Settings className="w-4 h-4" />
-              </label>
-            )}
-          </div>
-          <div className="flex-1">
-            <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {/* Use editedProfile for display when editing, otherwise use profile */}
-                  {isEditing ? editedProfile.name : profile.name}
-                </h1>
-                <p className="text-gray-500 dark:text-gray-400">
-                  {/* Use editedProfile for display when editing, otherwise use profile */}
-                  {isEditing ? editedProfile.email : profile.email}
-                </p>
-                <div className="mt-2">
-                  <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 rounded-full text-sm">
-                    {/* Use editedProfile for display when editing, otherwise use profile */}
-                    {isEditing ? editedProfile.role : profile.role}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsEditing(!isEditing)}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {Object.entries(stats).map(([key, value]) => (
+            <motion.div
+              key={key}
+              whileHover={{ scale: 1.05 }}
+              className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+            >
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                {key.replace(/([A-Z])/g, ' $1').trim()}
+              </p>
+            </motion.div>
+          ))}
         </div>
       </motion.div>
 
-      {/* Tabs */}
-      <div className="flex space-x-4 border-b border-gray-200 dark:border-gray-700">
-        {(['profile', 'settings', 'stats'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === tab
-                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Sidebar */}
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+            className="w-full md:w-64 space-y-2"
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
+            {[
+              { id: 'overview', icon: User, label: 'Overview' },
+              { id: 'songs', icon: Music, label: 'My Songs' },
+              { id: 'scripts', icon: FileText, label: 'My Scripts' },
+              { id: 'collaborations', icon: MessageSquare, label: 'Collaborations' },
+              { id: 'settings', icon: Settings, label: 'Settings' }
+            ].map((item) => (
+              <motion.button
+                key={item.id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+                  activeTab === item.id
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                    : 'bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/80'
+                }`}
+              >
+                <item.icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </motion.button>
+            ))}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all duration-300"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Sign Out</span>
+            </motion.button>
+          </motion.div>
+
+          {/* Content Area */}
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4 }}
+            className="flex-1"
+          >
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-gray-200/50 dark:border-gray-700/50">
+              {activeTab === 'overview' && (
+                <div className="space-y-8">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Recent Activity</h2>
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          className="flex items-start space-x-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl"
+                        >
+                          <div className="p-2 bg-blue-500/10 rounded-lg">
+                            <Music className="w-5 h-5 text-blue-500" />
+                          </div>
+                          <div>
+                            <p className="text-gray-900 dark:text-white font-medium">Created a new song</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">2 hours ago</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Achievements</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        { icon: Star, title: 'Top Contributor', description: 'Created 10+ songs' },
+                        { icon: Award, title: 'Collaboration Master', description: '20+ successful collaborations' },
+                        { icon: Heart, title: 'Community Favorite', description: 'Received 100+ likes' },
+                        { icon: Users, title: 'Team Player', description: 'Worked with 5+ teams' }
+                      ].map((achievement, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          className="flex items-center space-x-4 p-4 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+                        >
+                          <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl text-white">
+                            <achievement.icon className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900 dark:text-white">{achievement.title}</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{achievement.description}</p>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'songs' && (
+                <div className="text-center py-12">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">My Songs</h2>
+                  <p className="text-gray-500 dark:text-gray-400">Coming soon...</p>
+                </div>
+              )}
+
+              {activeTab === 'scripts' && (
+                <div className="text-center py-12">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">My Scripts</h2>
+                  <p className="text-gray-500 dark:text-gray-400">Coming soon...</p>
+                </div>
+              )}
+
+              {activeTab === 'collaborations' && (
+                <div className="text-center py-12">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Collaborations</h2>
+                  <p className="text-gray-500 dark:text-gray-400">Coming soon...</p>
+                </div>
+              )}
+
+              {activeTab === 'settings' && (
+                <div className="text-center py-12">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Settings</h2>
+                  <p className="text-gray-500 dark:text-gray-400">Coming soon...</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
       </div>
-
-      {/* Profile Tab */}
-      {activeTab === 'profile' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-        >
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Name
-              </label>
-              <input
-                type="text"
-                value={editedProfile.name || ''}
-                onChange={(e) => setEditedProfile(prev => ({ ...prev, name: e.target.value }))}
-                disabled={!isEditing}
-                className="w-full px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 text-gray-900 dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                value={editedProfile.email || ''}
-                onChange={(e) => setEditedProfile(prev => ({ ...prev, email: e.target.value }))}
-                disabled={!isEditing}
-                className="w-full px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 text-gray-900 dark:text-white"
-              />
-            </div>
-            {isEditing && (
-              <div className="flex justify-end">
-                <button
-                  onClick={handleSaveProfile}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Save Changes
-                </button>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Settings Tab */}
-      {activeTab === 'settings' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-        >
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Bell className="w-5 h-5 text-gray-400" />
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
-                    Notifications
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Receive updates about your auditions and feedback
-                  </p>
-                </div>
-              </div>
-              {/* Use editedProfile for checkbox state */}
-              <input
-                type="checkbox"
-                checked={editedProfile.preferences?.notifications || false}
-                onChange={(e) => setEditedProfile(prev => ({
-                  ...prev,
-                  preferences: {
-                    ...(prev.preferences || {}),
-                    notifications: e.target.checked
-                  }
-                }))}
-                disabled={!isEditing}
-                className="h-6 w-6 text-blue-600 rounded focus:ring-blue-500 disabled:opacity-50"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Lock className="w-5 h-5 text-gray-400" />
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
-                    Dark Mode
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Switch to a darker theme
-                  </p>
-                </div>
-              </div>
-              {/* Use editedProfile for checkbox state */}
-              <input
-                type="checkbox"
-                checked={editedProfile.preferences?.darkMode || false}
-                onChange={(e) => setEditedProfile(prev => ({
-                  ...prev,
-                  preferences: {
-                    ...(prev.preferences || {}),
-                    darkMode: e.target.checked
-                  }
-                }))}
-                disabled={!isEditing}
-                className="h-6 w-6 text-blue-600 rounded focus:ring-blue-500 disabled:opacity-50"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Music className="w-5 h-5 text-gray-400" />
-                <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">
-                    Auto-play Songs
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Automatically play the next song in a list
-                  </p>
-                </div>
-              </div>
-              {/* Use editedProfile for checkbox state */}
-              <input
-                type="checkbox"
-                checked={editedProfile.preferences?.autoPlay || false}
-                onChange={(e) => setEditedProfile(prev => ({
-                  ...prev,
-                  preferences: {
-                    ...(prev.preferences || {}),
-                    autoPlay: e.target.checked
-                  }
-                }))}
-                disabled={!isEditing}
-                className="h-6 w-6 text-blue-600 rounded focus:ring-blue-500 disabled:opacity-50"
-              />
-            </div>
-            {isEditing && (
-              <div className="flex justify-end">
-                <button
-                  onClick={handleSaveProfile}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Save Changes
-                </button>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Stats Tab */}
-      {activeTab === 'stats' && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700"
-        >
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center space-x-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                <Music className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Songs Learned</p>
-                  {/* Use profile for stats display */}
-                  <p className="text-xl font-semibold text-gray-900 dark:text-white">{profile.stats.songsLearned}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                <Mic className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Auditions Submitted</p>
-                  {/* Use profile for stats display */}
-                  <p className="text-xl font-semibold text-gray-900 dark:text-white">{profile.stats.auditionsSubmitted}</p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                <Bell className="w-6 h-6 text-green-600 dark:text-green-400" />
-                <div>
-                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Feedback Received</p>
-                  {/* Use profile for stats display */}
-                  <p className="text-xl font-semibold text-gray-900 dark:text-white">{profile.stats.feedbackReceived}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
     </div>
   )
 } 

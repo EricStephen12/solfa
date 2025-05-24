@@ -1,67 +1,71 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Music } from 'lucide-react'
 
 export default function SplashScreen() {
-  const [isVisible, setIsVisible] = useState(true)
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false)
-    }, 2000)
-
-    return () => clearTimeout(timer)
-  }, [])
-
   return (
     <AnimatePresence>
-      {isVisible && (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-blue-900 flex items-center justify-center z-50"
+      >
         <motion.div
-          initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{
+            duration: 0.8,
+            ease: [0, 0.71, 0.2, 1.01]
+          }}
+          className="text-center"
         >
-          <div className="text-center">
             <motion.div
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5 }}
+            animate={{
+              y: [0, -20, 0],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
               className="mb-8"
             >
-              <svg
-                className="w-24 h-24 mx-auto text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
-                />
-              </svg>
+            <Music className="w-24 h-24 text-white mx-auto" />
             </motion.div>
             <motion.h1
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-4xl font-bold text-white mb-2"
+            transition={{ delay: 0.5 }}
+            className="text-4xl md:text-6xl font-bold text-white mb-4"
             >
               Solfa
             </motion.h1>
             <motion.p
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="text-white/80"
+            transition={{ delay: 0.7 }}
+            className="text-xl text-white/80"
             >
-              Choir Music Assistant
+            Your Musical Journey Begins
             </motion.p>
-          </div>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: "100%" }}
+            transition={{ delay: 1, duration: 1 }}
+            className="h-1 bg-white/20 rounded-full mt-8 overflow-hidden"
+          >
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: "100%" }}
+              transition={{ delay: 1, duration: 1 }}
+              className="h-full bg-white rounded-full"
+            />
+          </motion.div>
         </motion.div>
-      )}
+      </motion.div>
     </AnimatePresence>
   )
 } 

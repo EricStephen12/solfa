@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Music, Play, Pause, Volume2, Search } from 'lucide-react'
+import { Search, Music, Play, Pause, Volume2 } from 'lucide-react'
 // Import supabase client if needed for data fetching, commented out for now
 // import { supabase } from '@/lib/supabase'
 
@@ -10,10 +10,11 @@ import { Music, Play, Pause, Volume2, Search } from 'lucide-react'
 interface Song {
   id: string
   title: string
-  choir?: string
-  audioUrl?: string // Placeholder
-  lyrics?: string // Placeholder
-  notations?: { // Placeholder structure for solfa notation
+  description: string
+  creator: string
+  audioUrl?: string
+  lyrics?: string
+  notations?: {
     soprano: string[]
     alto: string[]
     tenor: string[]
@@ -21,48 +22,48 @@ interface Song {
   }
 }
 
-// Placeholder data
+// Define placeholder data
 const placeholderSongs: Song[] = [
   {
-    id: 'song-1',
+    id: '1',
     title: 'Joyful Praise',
-    choir: 'Main Choir',
-    audioUrl: '/audio/placeholder-praise.mp3', // Placeholder audio file path
-    lyrics: "Joyful praise to the King!\nLift your voices and sing!\nHis love forever reigns!\nIn joyful praise we bring!",
+    description: 'A vibrant celebration of joy and gratitude',
+    creator: 'John Doe',
+    audioUrl: '/audio/joyful-praise.mp3',
+    lyrics: 'Joyful praise we sing to You\nLifting up our hearts anew\nGrateful for Your love so true\nWe worship You',
     notations: {
-      soprano: ['d', 'r', 'm', 'f', 's', 'l', 't', 'd'+'\'', 's', 'f', 'm', 'r', 'd'],
-      alto: ['s,', 't,', 'd', 'r', 'm', 'f', 's', 'f', 'm', 'r', 'd', 't,', 's,'],
-      tenor: ['m,', 'f,', 's,', 'l,', 't,', 'd', 'r', 'd', 't,', 'l,', 's,', 'f,', 'm,'],
-      bass: ['d,', 'r,', 'm,', 'f,', 's,', 'l,', 't,', 'd', 't,', 'l,', 's,', 'f,', 'm,'],
-    },
+      soprano: ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti', 'do'],
+      alto: ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti', 'do'],
+      tenor: ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti', 'do'],
+      bass: ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti', 'do']
+    }
   },
   {
-    id: 'song-2',
-    title: 'Spirit Filled Worship',
-    choir: 'Worship Team',
-    audioUrl: '/audio/placeholder-worship.mp3', // Placeholder
-    lyrics: "Spirit of God fill this place\nMove in power and grace\nLet your glory descend\nAs our hearts ascend",
+    id: '2',
+    title: 'Peaceful Waters',
+    description: 'A calming melody about finding peace in God',
+    creator: 'Jane Smith',
+    audioUrl: '/audio/peaceful-waters.mp3',
+    lyrics: 'Like peaceful waters flowing\nYour love surrounds my soul\nIn Your presence I am whole\nI find my rest in You',
     notations: {
-      soprano: ['m', 'f', 's', 's', 'l', 's', 'f', 'm'],
-      alto: ['d', 'r', 'm', 'm', 'f', 'm', 'r', 'd'],
-      tenor: ['s,', 't,', 'd', 'd', 'r', 'd', 't,', 's,'],
-      bass: ['d,', 'r,', 'm,', 'm,', 'f,', 'm,', 'r,', 'd,'],
-    },
-  },
-  // Add more placeholder songs as needed
-];
+      soprano: ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti', 'do'],
+      alto: ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti', 'do'],
+      tenor: ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti', 'do'],
+      bass: ['do', 're', 'mi', 'fa', 'sol', 'la', 'ti', 'do']
+    }
+  }
+]
 
 export default function SongsPage() {
-  const [songs, setSongs] = useState<Song[]>(placeholderSongs) // Use placeholder data
+  const [songs, setSongs] = useState<Song[]>(placeholderSongs)
+  const [searchQuery, setSearchQuery] = useState('')
   const [currentSong, setCurrentSong] = useState<Song | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-  const [volume, setVolume] = useState(0.5)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [volume, setVolume] = useState(1)
+  const [currentNoteIndex, setCurrentNoteIndex] = useState(0)
   const [activeVoicePart, setActiveVoicePart] = useState<'soprano' | 'alto' | 'tenor' | 'bass'>('soprano')
-  const [currentNoteIndex, setCurrentNoteIndex] = useState(-1) // For solfa highlighting
-
   const audioRef = useRef<HTMLAudioElement>(null)
 
   const [isLoading, setIsLoading] = useState(false) // Manage loading state
@@ -99,116 +100,117 @@ export default function SongsPage() {
   }, []);
   */
 
-  // Effect to handle audio playback and update progress
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (audio) {
-      audio.volume = volume;
-
-      const handleTimeUpdate = () => {
-        setCurrentTime(audio.currentTime);
-        // Basic placeholder logic for solfa highlighting based on time
-        // Replace with actual sync logic later
-        const noteDuration = duration / (currentSong?.notations?.[activeVoicePart]?.length || 1);
-        setCurrentNoteIndex(Math.floor(audio.currentTime / noteDuration));
-      };
-
-      const handleLoadedMetadata = () => {
-        setDuration(audio.duration);
-      };
-
-      audio.addEventListener('timeupdate', handleTimeUpdate);
-      audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-
-      if (isPlaying) {
-        audio.play().catch(e => console.error("Audio playback failed:", e));
-      } else {
-        audio.pause();
-      }
-
-      return () => {
-        audio.removeEventListener('timeupdate', handleTimeUpdate);
-        audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      };
-    }
-  }, [isPlaying, currentSong, volume, duration, activeVoicePart]); // Add dependencies
-
-  // Effect to load new audio when currentSong changes
-  useEffect(() => {
-    if (currentSong?.audioUrl && audioRef.current) {
-      audioRef.current.src = currentSong.audioUrl;
-      audioRef.current.load();
-      setIsPlaying(true);
-      setCurrentTime(0);
-      setDuration(0);
-      setCurrentNoteIndex(-1);
-    } else if (audioRef.current) {
-      audioRef.current.src = '';
-      setIsPlaying(false);
-      setCurrentTime(0);
-      setDuration(0);
-      setCurrentNoteIndex(-1);
-    }
-  }, [currentSong]);
-
+  // Filter songs based on search query
   const filteredSongs = songs.filter(song =>
     song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    song.choir?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    song.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    song.creator.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
-  const formatTime = (seconds: number): string => {
-    if (isNaN(seconds)) return '0:00';
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+  // Format time in MM:SS
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60)
+    const seconds = Math.floor(time % 60)
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
+  }
+
+  // Handle audio playback
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.play()
+      } else {
+        audioRef.current.pause()
+      }
+    }
+  }, [isPlaying])
+
+  // Update current time
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.addEventListener('timeupdate', () => {
+        setCurrentTime(audioRef.current?.currentTime || 0)
+      })
+      audioRef.current.addEventListener('loadedmetadata', () => {
+        setDuration(audioRef.current?.duration || 0)
+      })
+    }
+  }, [])
+
+  // Update volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume
+    }
+  }, [volume])
 
   return (
-    <div className="space-y-8 py-8">
+    <div className="space-y-8 py-8 px-4 sm:px-6 lg:px-8">
       {/* Search Bar */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="relative">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        className="relative max-w-2xl mx-auto"
+      >
         <input
           type="text"
-          placeholder="Search songs or choirs..."
+          placeholder="Search songs..."
+          className="w-full px-6 py-4 pl-14 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-lg transition-all duration-300 hover:shadow-xl"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-3 pl-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
         />
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400" />
       </motion.div>
 
       {/* Current Song Player */}
       <AnimatePresence mode="wait">
       {currentSong ? (
         <motion.div
-          key={currentSong.id} // Key for exit/enter animations
+            key={currentSong.id}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-          className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gold-300"
-        >
-          <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-400 mb-4">Now Playing</h2>
-          <div className="flex items-start space-x-6">
-            <div className="w-32 h-32 bg-blue-50 dark:bg-blue-900/50 rounded-xl flex items-center justify-center flex-shrink-0">
-              <Music className="w-12 h-12 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
+            className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl p-8 shadow-2xl border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm"
+          >
+            <div className="flex flex-col lg:flex-row items-center lg:items-start space-y-6 lg:space-y-0 lg:space-x-8">
+              {/* Album Art */}
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                className="w-48 h-48 lg:w-64 lg:h-64 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 rounded-2xl shadow-lg flex items-center justify-center overflow-hidden"
+              >
+                <Music className="w-24 h-24 text-blue-600 dark:text-blue-400" />
+              </motion.div>
+
+              {/* Song Info and Controls */}
+              <div className="flex-1 w-full">
+                <h2 className="text-3xl font-bold text-blue-800 dark:text-blue-400 mb-2">
                 {currentSong.title}
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
-                {currentSong.choir}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-300 mb-6">
+                  Created by {currentSong.creator}
               </p>
+
               {/* Audio Controls */}
+                <div className="space-y-6">
               <div className="flex items-center space-x-4">
-                <button
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                   onClick={() => setIsPlaying(!isPlaying)}
-                  className="p-3 bg-gold-500 text-blue-900 rounded-full hover:bg-gold-600 transition-colors"
+                      className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                </button>
+                      {isPlaying ? <Pause className="w-8 h-8" /> : <Play className="w-8 h-8" />}
+                    </motion.button>
                 <div className="flex-1">
                   {/* Progress Bar */}
+                      <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <motion.div
+                          className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 to-purple-600"
+                          style={{ width: `${(currentTime / duration) * 100}%` }}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(currentTime / duration) * 100}%` }}
+                          transition={{ duration: 0.1 }}
+                        />
                   <input
                     type="range"
                     min="0"
@@ -220,10 +222,10 @@ export default function SongsPage() {
                       }
                       setCurrentTime(parseFloat(e.target.value));
                     }}
-                    className="w-full accent-gold-500"
+                          className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  {/* Time Display */}
-                  <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      </div>
+                      <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
                     <span>{formatTime(currentTime)}</span>
                     <span>{formatTime(duration)}</span>
                   </div>
@@ -238,27 +240,27 @@ export default function SongsPage() {
                     step="0.01"
                     value={volume}
                     onChange={(e) => setVolume(parseFloat(e.target.value))}
-                    className="w-20 accent-gold-500"
+                        className="w-24 accent-blue-600"
                   />
-                </div>
-              </div>
             </div>
           </div>
 
           {/* Voice Part Selector */}
-          <div className="mt-6 flex space-x-4 overflow-x-auto pb-2">
-            {currentSong.notations && (['soprano', 'alto', 'tenor', 'bass'] as const).map((part) => (
-              <button
+                  <div className="flex flex-wrap gap-2">
+                    {(['soprano', 'alto', 'tenor', 'bass'] as const).map((part) => (
+                      <motion.button
                 key={part}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveVoicePart(part)}
-                className={`px-4 py-2 rounded-lg transition-colors text-sm font-medium flex-shrink-0 ${
+                        className={`px-4 py-2 rounded-xl transition-all duration-300 text-sm font-medium ${
                   activeVoicePart === part
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                            : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                 }`}
               >
                 {part.charAt(0).toUpperCase() + part.slice(1)}
-              </button>
+                      </motion.button>
             ))}
           </div>
 
@@ -267,19 +269,24 @@ export default function SongsPage() {
              <motion.div
                initial={{ opacity: 0 }}
                animate={{ opacity: 1 }}
-               className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl overflow-x-auto font-mono text-lg leading-relaxed"
+                      className="p-6 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl overflow-x-auto font-mono text-xl leading-relaxed"
              >
-               {currentSong.notations[activeVoicePart].map((note, index) => (
-                 <span
+                      {currentSong.notations[activeVoicePart].map((note: string, index: number) => (
+                        <motion.span
                    key={index}
-                   className={`inline-block px-1 py-0.5 transition-colors ${
+                          initial={{ scale: 1 }}
+                          animate={{ 
+                            scale: index === currentNoteIndex ? 1.2 : 1,
+                            backgroundColor: index === currentNoteIndex ? 'rgba(59, 130, 246, 0.2)' : 'transparent'
+                          }}
+                          className={`inline-block px-2 py-1 mx-1 rounded-lg transition-all duration-300 ${
                      index === currentNoteIndex
-                       ? 'bg-gold-400 text-blue-900 rounded' // Highlight color
+                              ? 'text-blue-900 dark:text-blue-100'
                        : 'text-gray-700 dark:text-gray-300'
                    }`}
                  >
                    {note}
-                 </span>
+                        </motion.span>
                ))}
              </motion.div>
           )}
@@ -289,25 +296,29 @@ export default function SongsPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl whitespace-pre-line text-gray-700 dark:text-gray-300"
+                      className="p-6 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl"
             >
-              <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Lyrics</h3>
+                      <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Lyrics</h3>
+                      <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
               {currentSong.lyrics}
+                      </p>
             </motion.div>
           )}
-
-          {/* Pitch Visualizer Placeholder */}
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/50 rounded-xl text-center text-blue-800 dark:text-blue-300">
-            Pitch Visualizer Placeholder (Coming Soon)
+                </div>
+              </div>
           </div>
-
         </motion.div>
-      ) : isLoading ? (
-        <motion.div key="loading-player" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-gray-500 dark:text-gray-400 py-8">Loading song player...</motion.div>
-      ) : error ? (
-        <motion.div key="error-player" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-red-500 py-8">{error}</motion.div>
-      ) : (
-         <motion.div key="no-song-selected" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-gray-500 dark:text-gray-400 py-8">Select a song to start practicing!</motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm rounded-3xl shadow-lg"
+          >
+            <Music className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <p className="text-xl text-gray-600 dark:text-gray-300">
+              Select a song to start practicing!
+            </p>
+          </motion.div>
       )}
       </AnimatePresence>
 
@@ -315,49 +326,59 @@ export default function SongsPage() {
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }} // Adjust delay based on elements above
+        transition={{ delay: 0.2 }}
         className="space-y-6"
       >
-        <h2 className="text-2xl font-bold text-blue-800 dark:text-blue-400">All Songs</h2>
-        {isLoading ? (
-           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-gray-500 dark:text-gray-400">Loading songs list...</motion.div>
-        ) : error ? (
-           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-red-500">{error}</motion.div>
-        ) : filteredSongs.length > 0 ? (
+        <h2 className="text-3xl font-bold text-blue-800 dark:text-blue-400">All Songs</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             <AnimatePresence>
-              {filteredSongs.map((song) => (
+            {filteredSongs.map((song: Song, index: number) => (
                 <motion.div
                   key={song.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  whileHover={{ scale: 1.03, boxShadow: "0 8px 16px rgba(0, 0, 0, 0.2)" }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+                whileHover={{ 
+                  scale: 1.02,
+                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                }}
                   whileTap={{ scale: 0.98 }}
-                  className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg cursor-pointer border border-gray-200 dark:border-gray-700"
-                  onClick={() => setCurrentSong(song)}
+                className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl shadow-lg overflow-hidden border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm"
                 >
-                  <div className="aspect-square bg-blue-50 dark:bg-blue-900/50 rounded-lg mb-4 flex items-center justify-center">
-                    {/* Placeholder image or icon for song */}
-                    <Music className="w-12 h-12 text-blue-600 dark:text-blue-400" />
+                <div className="p-6">
+                  <div className="w-full aspect-square bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 rounded-xl mb-4 flex items-center justify-center">
+                    <Music className="w-16 h-16 text-blue-600 dark:text-blue-400" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                     {song.title}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {song.choir}
+                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
+                    {song.description}
                   </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        By {song.creator}
+                      </span>
+                    </div>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setCurrentSong(song)}
+                      className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-300"
+                    >
+                      Play
+                    </motion.button>
+                  </div>
+                </div>
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
-         ) : ( // No songs found after filtering or initial load
-           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center text-gray-500 dark:text-gray-400">No songs found matching your search.</motion.div>
-         )}
       </motion.section>
 
-      {/* Hidden audio element for playback */}
+      {/* Hidden audio element */}
       <audio ref={audioRef} />
     </div>
-  );
+  )
 } 
