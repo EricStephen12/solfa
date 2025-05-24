@@ -38,7 +38,7 @@ export default function RootLayout({
               <Navigation />
               {/* Main Content */}
               <div className="md:pl-64">
-                <main className="py-6 px-4 sm:px-6 lg:px-8">
+                <main className="py-6 px-1 sm:px-6 lg:px-8 w-full max-w-full">
                   {children}
                 </main>
               </div>

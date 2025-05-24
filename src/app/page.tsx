@@ -69,7 +69,7 @@ export default function Home() {
         className="relative overflow-hidden rounded-2xl h-[400px]"
       >
         <Image
-          src="https://images.app.goo.gl/rGPJe2bq6xzcjP8z5"
+          src="/images/praise 1.jpg"
           alt="Hero Background"
           fill
           className="object-cover"
@@ -85,7 +85,7 @@ export default function Home() {
       {/* Quick Actions with Background Image */}
       <div className="relative overflow-hidden rounded-2xl">
         <Image
-          src="https://images.app.goo.gl/y4e2jJ8TAVk3z3uJ6"
+          src="/images/praise 2.jpg"
           alt="Quick Actions Background"
           width={1200}
           height={400}
@@ -117,7 +117,7 @@ export default function Home() {
       {/* Upcoming Rehearsals with Background Image */}
       <div className="relative overflow-hidden rounded-2xl">
         <Image
-          src="https://images.app.goo.gl/gRUz81qznf9QLuWD8"
+          src="/images/praise 3.jpg"
           alt="Rehearsals Background"
           width={1200}
           height={400}
