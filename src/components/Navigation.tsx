@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { Home, Music, Users, Mic, User, Menu, X, MessageSquare, FileText } from 'lucide-react'
+import { Home, Music, Users, Mic, User, Menu, X, MessageSquare, FileText, Search } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const navigation = [
@@ -27,15 +27,15 @@ export default function Navigation() {
             initial={{ opacity: 0, x: -300 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -300 }}
-            className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg md:hidden"
+            className="fixed inset-y-0 left-0 z-50 w-64 bg-black/95 backdrop-blur-lg shadow-lg md:hidden"
           >
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                Solfa
+            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+              <h1 className="text-xl font-bold text-white">
+                LMM Live Production Rehearsal Sheet
               </h1>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="p-2 text-gray-400 hover:text-white"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -47,8 +47,8 @@ export default function Navigation() {
                   href={item.href}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                     pathname === item.href
-                      ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
-                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                      ? 'bg-white/10 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -63,13 +63,13 @@ export default function Navigation() {
 
       {/* Mobile Header */}
       <div className="md:hidden">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            Solfa
+        <div className="flex items-center justify-between p-4 border-b border-gray-800 bg-black/95 backdrop-blur-lg">
+          <h1 className="text-xl font-bold text-white">
+            LMM Live Production Rehearsal Sheet
           </h1>
           <button
             onClick={() => setIsMobileMenuOpen(true)}
-            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            className="p-2 text-gray-400 hover:text-white"
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -78,21 +78,31 @@ export default function Navigation() {
 
       {/* Desktop Sidebar */}
       <div className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0">
-        <div className="flex flex-col flex-grow pt-5 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col flex-grow pt-5 bg-black/95 backdrop-blur-lg border-r border-gray-800">
           <div className="flex items-center flex-shrink-0 px-4">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Solfa
+            <h1 className="text-xl font-bold text-white">
+              LMM Live Production Rehearsal Sheet
             </h1>
           </div>
-          <nav className="flex-1 px-4 mt-5 space-y-2">
+          <div className="px-4 mt-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-gray-800 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-white/20"
+              />
+            </div>
+          </div>
+          <nav className="flex-1 px-4 mt-6 space-y-2">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
                 className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                   pathname === item.href
-                    ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                    ? 'bg-white/10 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -101,6 +111,26 @@ export default function Navigation() {
             ))}
           </nav>
         </div>
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-lg border-t border-gray-800 z-[49]">
+        <nav className="flex justify-around items-center h-16">
+          {navigation.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex flex-col items-center justify-center flex-1 h-full ${
+                pathname === item.href
+                  ? 'text-white'
+                  : 'text-gray-400'
+              }`}
+            >
+              <item.icon className="w-6 h-6" />
+              <span className="text-xs mt-1">{item.name}</span>
+            </Link>
+          ))}
+        </nav>
       </div>
     </>
   )

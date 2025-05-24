@@ -10,7 +10,7 @@ export default function SplashScreen() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-gradient-to-br from-blue-900 via-purple-900 to-blue-900 flex items-center justify-center z-50"
+        className="fixed inset-0 bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center z-50"
       >
         <motion.div
           initial={{ scale: 0.5, opacity: 0 }}
@@ -38,30 +38,30 @@ export default function SplashScreen() {
             <motion.h1
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-4xl md:text-6xl font-bold text-white mb-4"
+              transition={{ delay: 0.5 }}
+              className="text-4xl md:text-6xl font-bold text-white mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400"
             >
-              Solfa
+              LMM Live Production Rehearsal Sheet
             </motion.h1>
             <motion.p
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="text-xl text-white/80"
+              transition={{ delay: 0.7 }}
+              className="text-xl text-gray-400"
             >
-            Your Musical Journey Begins
+              Your Musical Journey Begins
             </motion.p>
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: "100%" }}
             transition={{ delay: 1, duration: 1 }}
-            className="h-1 bg-white/20 rounded-full mt-8 overflow-hidden"
+            className="h-1 bg-white/10 rounded-full mt-8 overflow-hidden"
           >
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: "100%" }}
               transition={{ delay: 1, duration: 1 }}
-              className="h-full bg-white rounded-full"
+              className="h-full bg-gradient-to-r from-white to-gray-400 rounded-full"
             />
           </motion.div>
         </motion.div>

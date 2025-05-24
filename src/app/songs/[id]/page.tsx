@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Music, Users, Share2, Heart, MessageSquare, Bookmark, Play, Pause, Mic, Volume2, X } from 'lucide-react'
 
 interface VoicePart {
@@ -37,6 +37,7 @@ interface Song {
 
 export default function SongPage({ params }: { params: { id: string } }) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isPlaying, setIsPlaying] = useState(false)
   const [activeVoicePart, setActiveVoicePart] = useState<VoicePart['type']>('soprano')
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -54,6 +55,17 @@ export default function SongPage({ params }: { params: { id: string } }) {
     { text: 'ti', start: 6, end: 7 },
     { text: 'do', start: 7, end: 8 },
   ]
+
+  // Handle autoplay
+  useEffect(() => {
+    const autoplay = searchParams.get('autoplay')
+    if (autoplay === 'true') {
+      setIsPlaying(true)
+      if (audioRef.current) {
+        audioRef.current.play()
+      }
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (audioRef.current) {
