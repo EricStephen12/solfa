@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Music, Users, Share2, Heart, MessageSquare, Bookmark, Play, Pause, Mic, Volume2 } from 'lucide-react'
+import { Music, Users, Share2, Heart, MessageSquare, Bookmark, Play, Pause, Mic, Volume2, X } from 'lucide-react'
 
 interface VoicePart {
   type: 'soprano' | 'tenor' | 'alto' | 'bass'
@@ -39,6 +39,40 @@ export default function SongPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [isPlaying, setIsPlaying] = useState(false)
   const [activeVoicePart, setActiveVoicePart] = useState<VoicePart['type']>('soprano')
+  const audioRef = useRef<HTMLAudioElement>(null)
+  const [currentKaraokeIndex, setCurrentKaraokeIndex] = useState(0)
+  const solfaRefs = useRef<(HTMLSpanElement | null)[]>([])
+
+  // Example karaoke data for solfa (replace with real timing data)
+  const solfaKaraoke = [
+    { text: 'do', start: 0, end: 1 },
+    { text: 're', start: 1, end: 2 },
+    { text: 'mi', start: 2, end: 3 },
+    { text: 'fa', start: 3, end: 4 },
+    { text: 'sol', start: 4, end: 5 },
+    { text: 'la', start: 5, end: 6 },
+    { text: 'ti', start: 6, end: 7 },
+    { text: 'do', start: 7, end: 8 },
+  ]
+
+  useEffect(() => {
+    if (audioRef.current) {
+      const onTimeUpdate = () => {
+        const time = audioRef.current!.currentTime
+        const idx = solfaKaraoke.findIndex(
+          (word, i) =>
+            time >= word.start && (i === solfaKaraoke.length - 1 || time < solfaKaraoke[i + 1].start)
+        )
+        if (idx !== -1 && idx !== currentKaraokeIndex) {
+          setCurrentKaraokeIndex(idx)
+          solfaRefs.current[idx]?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' })
+        }
+      }
+      audioRef.current.addEventListener('timeupdate', onTimeUpdate)
+      return () => audioRef.current?.removeEventListener('timeupdate', onTimeUpdate)
+    }
+  }, [solfaKaraoke, currentKaraokeIndex])
+
   const [song] = useState<Song>({
     id: params.id,
     title: 'I See the Glory',
@@ -71,153 +105,124 @@ export default function SongPage({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="flex justify-between items-start mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {song.title}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Composed by {song.composer}
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="p-3 bg-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleCollaborate}
-              className="px-6 py-3 bg-purple-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
-            >
-              <Users className="w-5 h-5" />
-              <span>Collaborate</span>
-            </motion.button>
-          </div>
+    <div className="fixed inset-0 z-50 flex justify-center items-start overflow-y-auto bg-gradient-to-br from-blue-900 via-purple-900 to-blue-900 animate-gradient-x overflow-hidden">
+      {/* Animated Aura Blobs */}
+      <div className="absolute w-full h-full overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-400 opacity-30 rounded-full blur-3xl animate-pulse-slow" />
+        <div className="absolute bottom-0 right-1/3 w-80 h-80 bg-blue-400 opacity-20 rounded-full blur-2xl animate-pulse-slower" />
+      </div>
+      {/* Close Button */}
+      <button
+        onClick={() => router.back()}
+        className="absolute top-6 right-6 p-3 bg-white/20 hover:bg-white/40 rounded-full text-white shadow-lg z-50"
+        aria-label="Close Player"
+      >
+        <X className="w-7 h-7" />
+      </button>
+      {/* Player Card */}
+      <div className="relative z-10 w-full max-w-2xl mx-auto my-8 px-2 sm:px-0 bg-white/30 dark:bg-gray-900/40 rounded-3xl shadow-2xl border border-white/20 backdrop-blur-2xl p-6 sm:p-10 flex flex-col gap-8 items-center">
+        {/* Cover Art */}
+        <div className="w-40 h-40 rounded-2xl shadow-2xl bg-gradient-to-br from-blue-200 to-purple-200 flex items-center justify-center mb-4 border-4 border-white/30">
+          <Music className="w-20 h-20 text-blue-500 drop-shadow-lg" />
         </div>
-
+        {/* Title & Artist */}
+        <h1 className="text-4xl font-extrabold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent drop-shadow-lg">{song.title}</h1>
+        <p className="text-lg text-gray-700 dark:text-gray-200 text-center mb-2">Composed by {song.composer}</p>
+        {/* Audio Controls */}
+        <div className="flex flex-col items-center w-full gap-2">
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="p-5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-xl hover:scale-105 transition-all duration-300 mb-2"
+          >
+            {isPlaying ? <Pause className="w-10 h-10" /> : <Play className="w-10 h-10" />}
+          </button>
+          {/* Progress bar and volume can be added here */}
+        </div>
         {/* Engagement Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300"
-          >
+        <div className="grid grid-cols-4 gap-4 w-full mb-2">
+          <div className="flex flex-col items-center">
             <Heart className="w-5 h-5 text-red-500" />
-            <span>{song.likes}</span>
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300"
-          >
+            <span className="text-sm text-gray-700 dark:text-gray-300">{song.likes}</span>
+          </div>
+          <div className="flex flex-col items-center">
             <MessageSquare className="w-5 h-5 text-blue-500" />
-            <span>{song.comments}</span>
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300"
-          >
+            <span className="text-sm text-gray-700 dark:text-gray-300">{song.comments}</span>
+          </div>
+          <div className="flex flex-col items-center">
             <Share2 className="w-5 h-5 text-green-500" />
-            <span>{song.shares}</span>
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 text-gray-700 dark:text-gray-300"
-          >
+            <span className="text-sm text-gray-700 dark:text-gray-300">{song.shares}</span>
+          </div>
+          <div className="flex flex-col items-center">
             <Bookmark className="w-5 h-5 text-yellow-500" />
-            <span>{song.bookmarks}</span>
-          </motion.button>
+            <span className="text-sm text-gray-700 dark:text-gray-300">{song.bookmarks}</span>
+          </div>
         </div>
-
-        {/* Content */}
-        <div className="space-y-8">
+        {/* Sections (Solfa & Lyrics) */}
+        <div className="w-full space-y-8">
           {song.sections.map((section, index) => (
-            <motion.div
-              key={section.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg"
-            >
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-                Section {index + 1}
-              </h2>
-
+            <div key={section.id} className="w-full">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">Section {index + 1}</h2>
               {/* MD Instructions */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Mic className="w-4 h-4 text-gray-500" />
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Music Direction</h3>
-                  </div>
-                  <p className="text-gray-700 dark:text-gray-300">{section.mdInstructions.musicDirection}</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Users className="w-4 h-4 text-gray-500" />
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Choir Instruction</h3>
-                  </div>
-                  <p className="text-gray-700 dark:text-gray-300">{section.mdInstructions.choirInstruction}</p>
-                </div>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Volume2 className="w-4 h-4 text-gray-500" />
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Sound Cues</h3>
-                  </div>
-                  <p className="text-gray-700 dark:text-gray-300">{section.mdInstructions.soundCues}</p>
-                </div>
-              </div>
-
-              {/* Lyrics and Solfa */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Lyrics</h3>
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                    <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{section.lyrics}</p>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900 dark:text-white">Solfa Notation</h3>
-                    <div className="flex gap-2">
-                      {['soprano', 'tenor', 'alto', 'bass'].map((type) => (
-                        <motion.button
-                          key={type}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => setActiveVoicePart(type as VoicePart['type'])}
-                          className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                            activeVoicePart === type
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
-                          }`}
-                        >
-                          {type.charAt(0).toUpperCase() + type.slice(1)}
-                        </motion.button>
-                      ))}
+              <div className="mb-4">
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 shadow">
+                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Music Director Instructions</div>
+                  {section.mdInstructions.musicDirection && (
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700 dark:text-gray-200">Music Direction:</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-300">{section.mdInstructions.musicDirection}</span>
                     </div>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                    <p className="font-mono text-gray-700 dark:text-gray-300">
-                      {section.voiceParts.find(part => part.type === activeVoicePart)?.solfa}
-                    </p>
-                  </div>
+                  )}
+                  {section.mdInstructions.choirInstruction && (
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700 dark:text-gray-200">Choir Instruction:</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-300">{section.mdInstructions.choirInstruction}</span>
+                    </div>
+                  )}
+                  {section.mdInstructions.soundCues && (
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-200">Sound Cues:</span>
+                      <span className="ml-2 text-gray-600 dark:text-gray-300">{section.mdInstructions.soundCues}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </motion.div>
+              {/* Voice Part Tabs */}
+              <div className="flex justify-center gap-2 mb-4">
+                {['soprano', 'tenor', 'alto', 'bass'].map((type) => (
+                  <button
+                    key={type}
+                    onClick={() => setActiveVoicePart(type as VoicePart['type'])}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${activeVoicePart === type ? 'bg-blue-600 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'}`}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </button>
+                ))}
+              </div>
+              {/* Solfa Notation */}
+              <div className="flex flex-wrap justify-center gap-2 bg-gray-100/70 dark:bg-gray-800/70 rounded-xl p-4 mb-4 shadow-inner overflow-x-auto">
+                {solfaKaraoke.map((word, idx) => (
+                  <span
+                    key={idx}
+                    ref={el => (solfaRefs.current[idx] = el)}
+                    className={`px-3 py-2 rounded-lg transition-all duration-300 bg-white/80 dark:bg-gray-900/80 text-lg font-semibold shadow text-blue-700 dark:text-blue-300 ${
+                      idx === currentKaraokeIndex ? 'bg-blue-600 text-white scale-110 shadow-lg' : ''
+                    }`}
+                  >
+                    {word.text}
+                  </span>
+                ))}
+              </div>
+              {/* Lyrics */}
+              <div className="bg-gray-100/70 dark:bg-gray-800/70 rounded-xl p-4 shadow-inner">
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Lyrics</h3>
+                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-center">{section.lyrics}</p>
+              </div>
+            </div>
           ))}
         </div>
       </div>
+      {/* Hidden audio element for karaoke sync */}
+      <audio ref={audioRef} src={song.audioPath || ''} />
     </div>
   )
 } 

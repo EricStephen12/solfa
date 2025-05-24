@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Music, Play, Pause, Volume2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import AudioPlayer from '@/components/AudioPlayer'
 // Import supabase client if needed for data fetching, commented out for now
 // import { supabase } from '@/lib/supabase'
 
@@ -19,6 +21,11 @@ interface Song {
     alto: string[]
     tenor: string[]
     bass: string[]
+  }
+  mdInstructions?: {
+    musicDirection: string
+    choirInstruction: string
+    soundCues: string
   }
 }
 
@@ -68,6 +75,8 @@ export default function SongsPage() {
 
   const [isLoading, setIsLoading] = useState(false) // Manage loading state
   const [error, setError] = useState<string | null>(null) // Manage error state
+
+  const router = useRouter();
 
   // Effect to load songs - currently uses placeholder, can be updated for Supabase
   /*
@@ -364,7 +373,7 @@ export default function SongsPage() {
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setCurrentSong(song)}
+                      onClick={() => router.push(`/songs/${song.id}`)}
                       className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-300"
                     >
                       Play
@@ -379,6 +388,22 @@ export default function SongsPage() {
 
       {/* Hidden audio element */}
       <audio ref={audioRef} />
+
+      {currentSong && (
+        <div className="mb-8">
+          <AudioPlayer
+            notations={currentSong.notations || {
+              soprano: [],
+              alto: [],
+              tenor: [],
+              bass: []
+            }}
+            activeVoicePart={activeVoicePart}
+            onNoteHighlight={setCurrentNoteIndex}
+            mdInstructions={currentSong.mdInstructions}
+          />
+        </div>
+      )}
     </div>
   )
 } 

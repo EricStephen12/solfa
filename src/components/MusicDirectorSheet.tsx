@@ -27,6 +27,8 @@ interface Song {
   sections: Section[]
   audioPath?: string
   audioFile?: File
+  coverArtFile?: File
+  coverArtUrl?: string
   isProcessing?: boolean
 }
 
@@ -194,19 +196,45 @@ export default function MusicDirectorSheet() {
     // router.push(`/songs/${song.id}`)
   }
 
+  // Cover Art Upload Handler
+  const handleCoverArtUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setSong(prev => ({ ...prev, coverArtFile: file, coverArtUrl: url }))
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-2 sm:px-4 lg:max-w-7xl lg:mx-auto lg:px-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex-1">
-            <div className="flex items-center gap-4 mb-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center mb-8">
+          <div className="flex-1 w-full">
+            <div className="flex flex-col gap-2 xs:flex-row xs:items-center xs:gap-4 mb-4 w-full">
+              {/* Cover Art Upload */}
+              <div className="flex flex-col items-center mb-2 xs:mb-0 xs:mr-4">
+                <label htmlFor="cover-art-upload" className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Cover Art</label>
+                <input
+                  id="cover-art-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverArtUpload}
+                  className="mb-2"
+                />
+                {song.coverArtUrl && (
+                  <img
+                    src={song.coverArtUrl}
+                    alt="Cover Art Preview"
+                    className="w-20 h-20 object-cover rounded-xl border border-gray-300 dark:border-gray-600 shadow"
+                  />
+                )}
+              </div>
               <input
                 type="text"
                 value={song.title}
                 onChange={(e) => setSong(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="Enter song title..."
-                className="text-3xl font-bold bg-transparent border-b-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 outline-none px-2 py-1 w-full"
+                className="text-2xl sm:text-3xl font-bold bg-transparent border-b-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 outline-none px-2 py-1 w-full"
               />
             </div>
             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
@@ -220,7 +248,7 @@ export default function MusicDirectorSheet() {
               />
             </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-row gap-2 mt-4 sm:mt-0 sm:gap-4 w-full sm:w-auto justify-center sm:justify-end">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

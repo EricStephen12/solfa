@@ -7,6 +7,11 @@ interface AudioPlayerProps {
   notations: Record<VoicePart, string[]>
   activeVoicePart: VoicePart
   onNoteHighlight: (index: number) => void
+  mdInstructions?: {
+    musicDirection: string
+    choirInstruction: string
+    soundCues: string
+  }
 }
 
 // Voice part frequency ranges (in Hz)
@@ -52,7 +57,8 @@ const VOICE_RANGES = {
 export default function AudioPlayer({
   notations,
   activeVoicePart,
-  onNoteHighlight
+  onNoteHighlight,
+  mdInstructions
 }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [playbackSpeed, setPlaybackSpeed] = useState(1)
@@ -192,6 +198,33 @@ export default function AudioPlayer({
           </div>
         </div>
       </div>
+
+      {/* Music Director Instructions */}
+      {mdInstructions && (
+        <div className="mt-4 space-y-2">
+          <div className="text-sm font-medium text-gray-700">Music Director Instructions</div>
+          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+            {mdInstructions.musicDirection && (
+              <div>
+                <span className="font-semibold text-gray-700">Music Direction:</span>
+                <p className="text-gray-600">{mdInstructions.musicDirection}</p>
+              </div>
+            )}
+            {mdInstructions.choirInstruction && (
+              <div>
+                <span className="font-semibold text-gray-700">Choir Instruction:</span>
+                <p className="text-gray-600">{mdInstructions.choirInstruction}</p>
+              </div>
+            )}
+            {mdInstructions.soundCues && (
+              <div>
+                <span className="font-semibold text-gray-700">Sound Cues:</span>
+                <p className="text-gray-600">{mdInstructions.soundCues}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="mt-4">
         <div className="text-sm font-medium text-gray-700 mb-2">Progress</div>

@@ -43,9 +43,9 @@ export default function MDSheetListPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="w-[95%] mx-auto py-8">
+      <div className="w-full px-2 sm:px-4 py-8 lg:max-w-4xl lg:mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
             Musical Director Sheets
           </h1>
@@ -61,13 +61,13 @@ export default function MDSheetListPage() {
         </div>
 
         {/* MD Sheets Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 px-1">
           {sheets.map((sheet) => (
             <motion.div
               key={sheet.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="w-full bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-all duration-300"
+              className="w-full bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-4 min-w-0">
